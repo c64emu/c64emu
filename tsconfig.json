@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        //"module": "es2015",
+        "module": "commonjs",
+
+        "esModuleInterop": true,  // TODO: was false!!
+        "declaration": true,      // TODO: was false!!
+        //"forceConsistentCasingInFileNames": true,   // TODO: was false!!
+        "strict": true,    // TODO: was false!!
+        "noImplicitAny": true,    // TODO: was false!!
+        "strictNullChecks": false,  // TODO: should be true
+
+        "target": "ES2020",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "outDir": "tmp",
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
+    },
+    "include": ["src/**/*.ts"],
+    "lib": [
+        "DOM",
+        "ES2020"
+    ]
+}
