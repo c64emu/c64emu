@@ -39,6 +39,86 @@ export class CPU {
             v2 = 0,
             cond = false;
         const opcode = this.c64.read(this.pc++);
+
+        // read memory (special cases are handled below)
+        switch(opcode) {
+            case 0x09:
+            case 0x29:
+            case 0x69:
+            case 0xa0:
+            case 0xa2:
+            case 0xa9:
+            case 0xc0:
+            case 0xc9:
+            case 0xe0:
+                v1 = this.readImmediate(2);
+                break;
+            case 0x05:
+            case 0x25:
+            case 0x65:
+            case 0xa4:
+            case 0xa5:
+            case 0xa6:
+            case 0xc4:
+            case 0xc5:
+            case 0xe4:
+                v1 = this.readZeroPage(3);
+                break;
+            case 0x15:
+            case 0x35:
+            case 0x75:
+            case 0xb4:
+            case 0xb5:
+            case 0xd5:
+                v1 = this.readZeroPageX(4);
+                break;
+            case 0xb6:
+                v1 = this.readZeroPageY(4);
+                break;
+            case 0x0d:
+            case 0x2d:
+            case 0x6d:
+            case 0xac:
+            case 0xad:
+            case 0xae:
+            case 0xcc:
+            case 0xcd:
+            case 0xec:
+                v1 = this.readAbsolute(4);
+                break;
+            case 0x1d:
+            case 0x3d:
+            case 0x7d:
+            case 0xbc:
+            case 0xbd:
+            case 0xdd:
+                v1 = this.readAbsoluteX(4, 1);
+                break;
+            case 0x19:
+            case 0x39:
+            case 0x79:
+            case 0xb9:
+            case 0xbe:
+            case 0xd9:
+                v1 = this.readAbsoluteY(4, 1);
+                break;
+            case 0x01:
+            case 0x21:
+            case 0x61:
+            case 0xa1:
+            case 0xc1:
+                v1 = this.readIndirectX(6);
+                break;
+            case 0x11:
+            case 0x31:
+            case 0x71:
+            case 0xb1:
+            case 0xd1:
+                v1 = this.readIndirectY(5, 1);
+                break;
+        }
+
+        // operation
         switch (opcode) {
             // ADC --- Add Memory to Accumulator with Carry
             case 0x69:
@@ -49,32 +129,6 @@ export class CPU {
             case 0x79:
             case 0x61:
             case 0x71:
-                switch (opcode) {
-                    case 0x69:
-                        v1 = this.readImmediate(2);
-                        break;
-                    case 0x65:
-                        v1 = this.readZeroPage(3);
-                        break;
-                    case 0x75:
-                        v1 = this.readZeroPageX(4);
-                        break;
-                    case 0x6d:
-                        v1 = this.readAbsolute(4);
-                        break;
-                    case 0x7d:
-                        v1 = this.readAbsoluteX(4, 1);
-                        break;
-                    case 0x79:
-                        v1 = this.readAbsoluteY(4, 1);
-                        break;
-                    case 0x61:
-                        v1 = this.readIndirectX(6);
-                        break;
-                    case 0x71:
-                        v1 = this.readIndirectY(5, 1);
-                        break;
-                }
                 v2 = this.a + v1 + (this.sC ? 1 : 0);
                 this.sC = v2 > 0xff;
                 this.sV = !((this.a ^ v1) & 0x80 && (this.a ^ v2) & 0x80);
@@ -91,32 +145,6 @@ export class CPU {
             case 0x39:
             case 0x21:
             case 0x31:
-                switch (opcode) {
-                    case 0x29:
-                        v1 = this.readImmediate(2);
-                        break;
-                    case 0x25:
-                        v1 = this.readZeroPage(3);
-                        break;
-                    case 0x35:
-                        v1 = this.readZeroPageX(4);
-                        break;
-                    case 0x2d:
-                        v1 = this.readAbsolute(4);
-                        break;
-                    case 0x3d:
-                        v1 = this.readAbsoluteX(4, 1);
-                        break;
-                    case 0x39:
-                        v1 = this.readAbsoluteY(4, 1);
-                        break;
-                    case 0x21:
-                        v1 = this.readIndirectX(6);
-                        break;
-                    case 0x31:
-                        v1 = this.readIndirectY(5, 1);
-                        break;
-                }
                 this.a &= v1;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
@@ -130,32 +158,6 @@ export class CPU {
             case 0x19:
             case 0x01:
             case 0x11:
-                switch (opcode) {
-                    case 0x09:
-                        v1 = this.readImmediate(2);
-                        break;
-                    case 0x05:
-                        v1 = this.readZeroPage(3);
-                        break;
-                    case 0x15:
-                        v1 = this.readZeroPageX(4);
-                        break;
-                    case 0x0d:
-                        v1 = this.readAbsolute(4);
-                        break;
-                    case 0x1d:
-                        v1 = this.readAbsoluteX(4, 1);
-                        break;
-                    case 0x19:
-                        v1 = this.readAbsoluteY(4, 1);
-                        break;
-                    case 0x01:
-                        v1 = this.readIndirectX(6);
-                        break;
-                    case 0x11:
-                        v1 = this.readIndirectY(5, 1);
-                        break;
-                }
                 this.a |= v1;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
@@ -169,32 +171,6 @@ export class CPU {
             case 0xd9:
             case 0xc1:
             case 0xd1:
-                switch (opcode) {
-                    case 0xc9:
-                        v1 = this.readImmediate(2);
-                        break;
-                    case 0xc5:
-                        v1 = this.readZeroPage(3);
-                        break;
-                    case 0xd5:
-                        v1 = this.readZeroPageX(4);
-                        break;
-                    case 0xcd:
-                        v1 = this.readAbsolute(4);
-                        break;
-                    case 0xdd:
-                        v1 = this.readAbsoluteX(4, 1);
-                        break;
-                    case 0xd9:
-                        v1 = this.readAbsoluteY(4, 1);
-                        break;
-                    case 0xc1:
-                        v1 = this.readIndirectX(6);
-                        break;
-                    case 0xd1:
-                        v1 = this.readIndirectY(5, 1);
-                        break;
-                }
                 v2 = this.a - v1;
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
@@ -204,17 +180,6 @@ export class CPU {
             case 0xe0:
             case 0xe4:
             case 0xec:
-                switch (opcode) {
-                    case 0xe0:
-                        v1 = this.readImmediate(2);
-                        break;
-                    case 0xe4:
-                        v1 = this.readZeroPage(3);
-                        break;
-                    case 0xec:
-                        v1 = this.readAbsolute(4);
-                        break;
-                }
                 v2 = this.x - v1;
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
@@ -224,17 +189,6 @@ export class CPU {
             case 0xc0:
             case 0xc4:
             case 0xcc:
-                switch (opcode) {
-                    case 0xc0:
-                        v1 = this.readImmediate(2);
-                        break;
-                    case 0xc4:
-                        v1 = this.readZeroPage(3);
-                        break;
-                    case 0xcc:
-                        v1 = this.readAbsolute(4);
-                        break;
-                }
                 v2 = this.y - v1;
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
@@ -249,32 +203,7 @@ export class CPU {
             case 0xb9:
             case 0xa1:
             case 0xb1:
-                switch (opcode) {
-                    case 0xa9:
-                        this.a = this.readImmediate(2);
-                        break;
-                    case 0xa5:
-                        this.a = this.readZeroPage(3);
-                        break;
-                    case 0xb5:
-                        this.a = this.readZeroPageX(4);
-                        break;
-                    case 0xad:
-                        this.a = this.readAbsolute(4);
-                        break;
-                    case 0xbd:
-                        this.a = this.readAbsoluteX(4, 1);
-                        break;
-                    case 0xb9:
-                        this.a = this.readAbsoluteY(4, 1);
-                        break;
-                    case 0xa1:
-                        this.a = this.readIndirectX(6);
-                        break;
-                    case 0xb1:
-                        this.a = this.readIndirectY(5, 1);
-                        break;
-                }
+                this.a = v1;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
                 break;
@@ -284,23 +213,7 @@ export class CPU {
             case 0xb6:
             case 0xae:
             case 0xbe:
-                switch (opcode) {
-                    case 0xa2:
-                        this.x = this.readImmediate(2);
-                        break;
-                    case 0xa6:
-                        this.x = this.readZeroPage(3);
-                        break;
-                    case 0xb6:
-                        this.x = this.readZeroPageY(4);
-                        break;
-                    case 0xae:
-                        this.x = this.readAbsolute(4);
-                        break;
-                    case 0xbe:
-                        this.x = this.readAbsoluteY(4, 1);
-                        break;
-                }
+                this.x = v1;
                 this.sN = this.x >> 7 == 1;
                 this.sZ = this.x == 0;
                 break;
@@ -310,23 +223,7 @@ export class CPU {
             case 0xb4:
             case 0xac:
             case 0xbc:
-                switch (opcode) {
-                    case 0xa0:
-                        this.y = this.readImmediate(2);
-                        break;
-                    case 0xa4:
-                        this.y = this.readZeroPage(3);
-                        break;
-                    case 0xb4:
-                        this.y = this.readZeroPageX(4);
-                        break;
-                    case 0xac:
-                        this.y = this.readAbsolute(4);
-                        break;
-                    case 0xbc:
-                        this.y = this.readAbsoluteX(4, 1);
-                        break;
-                }
+                this.y = v1;
                 this.sN = this.y >> 7 == 1;
                 this.sZ = this.y == 0;
                 break;
@@ -498,7 +395,23 @@ export class CPU {
                 this.sC = (v1 & 0x01) == 1;
                 v1 >>= 1;
                 this.sZ = v1 == 0;
-                this.a = v1;
+                switch (opcode) {
+                    case 0x4a:
+                        this.a = v1;
+                        break;
+                    case 0x46:
+                        this.writeZeroPage(v1);
+                        break;
+                    case 0x56:
+                        this.readZeroPageX(v1);
+                        break;
+                    case 0x4e:
+                        this.readAbsolute(v1);
+                        break;
+                    case 0x5e:
+                        this.readAbsoluteX(v1);
+                        break;
+                }
                 break;
             // PHA --- Push Accumulator on Stack
             case 0x48:

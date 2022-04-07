@@ -37,7 +37,7 @@
             <br/>
             <!--<canvas id="c64monitor_canvas" width="400" height="280" style="width:800px;">
             </canvas>-->
-            <canvas id="c64monitor_canvas" width="400" height="280" style="width:400;">
+            <canvas id="c64monitor_canvas" width="400" height="280" style="width:400px;">
             </canvas>
         </div>
 
