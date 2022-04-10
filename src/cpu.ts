@@ -33,6 +33,20 @@ export class CPU {
         this.c64 = c64;
     }
 
+    setProgramCounter(address: number): void {
+        this.pc = address & 0xffff;
+    }
+
+    getRegisters(): { [id: string]: number } {
+        return {
+            pc: this.pc,
+            sp: this.sp,
+            a: this.a,
+            x: this.x,
+            y: this.y,
+        };
+    }
+
     step(): void {
         let addr = 0,
             v1 = 0,
@@ -41,7 +55,7 @@ export class CPU {
         const opcode = this.c64.read(this.pc++);
 
         // read memory (special cases are handled below)
-        switch(opcode) {
+        switch (opcode) {
             case 0x09:
             case 0x29:
             case 0x69:
@@ -313,7 +327,6 @@ export class CPU {
                 break;
             // INX --- Increment Index X by One
             case 0xe8:
-                this.pc++;
                 this.x = (this.x + 1) & 0xff;
                 this.sN = this.x >> 7 == 1;
                 this.sZ = this.x == 0;
@@ -321,7 +334,6 @@ export class CPU {
                 break;
             // INY --- Increment Index Y by One
             case 0xc8:
-                this.pc++;
                 this.y = (this.y + 1) & 0xff;
                 this.sN = this.x >> 7 == 1;
                 this.sZ = this.x == 0;
@@ -329,42 +341,35 @@ export class CPU {
                 break;
             // NOP --- No Operation
             case 0xea:
-                this.pc++;
                 this.cycle += 2;
                 break;
             // SEC --- Set Carry Flag
             case 0x38:
-                this.pc++;
                 this.sC = true;
                 this.cycle += 2;
                 break;
             // CLC --- Clear Carry Flag
             case 0x18:
-                this.pc++;
                 this.sC = false;
                 this.cycle += 2;
                 break;
             // SED --- Set Decimal Flag
             case 0xf8:
-                this.pc++;
                 this.sD = true;
                 this.cycle += 2;
                 break;
             // CLD --- Clear Decimal Flag
             case 0xd8:
-                this.pc++;
                 this.sD = false;
                 this.cycle += 2;
                 break;
             // CLI --- Clear Interrupt Disable Bit
             case 0x58:
-                this.pc++;
                 this.sI = false;
                 this.cycle += 2;
                 break;
             // CLV --- Clear Overflow Flag
             case 0xb8:
-                this.pc++;
                 this.sV = false;
                 this.cycle += 2;
                 break;

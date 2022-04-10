@@ -57,10 +57,10 @@ export class C64 {
         else if (address >= 0xe000 && address <= 0xffff)
             return this.romKernal[address - 0xe000];
         else {
-            if (this.ramWritten[address] == 0)
+            /*if (this.ramWritten[address] == 0)
                 console.log(
                     'warning: RAM[' + address + '] is read before written',
-                );
+                );*/
             return this.ram[address];
         }
     }
@@ -71,8 +71,22 @@ export class C64 {
             return this.romCharacters[address - 0xd000];
     }
 
+    startDebugging(address: number): boolean {
+        this.cpu.setProgramCounter(address);
+        return true;
+    }
+
+    step(): boolean {
+        this.cpu.step();
+        return true;
+    }
+
+    getRegisters(): { [id: string]: number } {
+        return this.cpu.getRegisters();
+    }
+
     render(): void {
-        // temp test:
+        /*// temp test:
         for (let i = 0; i < 1000; i++) this.write(0x0400 + i, 96);
         // "C64"
         this.write(0x0400, 3);
@@ -102,7 +116,7 @@ export class C64 {
         ];
         for (let i = 0; i < 21 * 3; i++) {
             this.write(12800 + i, test_sprite_data[i]);
-        }
+        }*/
 
         this.vic2.render(63 * 312);
     }
