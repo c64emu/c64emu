@@ -3,27 +3,34 @@
     <head>
         <title>C64 Emulator</title>
         <!-- disable cache (for debugging purposes) -->
-        <meta http-equiv="Cache-Control"
-            content="no-cache, no-store, must-revalidate" />
+        <meta
+            http-equiv="Cache-Control"
+            content="no-cache, no-store, must-revalidate"
+        />
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
         <!-- charset, viewport -->
-        <meta charset="utf-8">
-        <meta name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+        />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
         <!-- include emulator -->
         <script src="dist/c64emu.min.js?version=1?>"></script>
     </head>
     <body>
         <!-- canvas for emulator: width and heigth cannot be changed.
              Use style for stretching -->
-        <canvas id="c64monitor_canvas"
-            width="400" height="280"
-            style="width:400px;">
+        <canvas
+            id="c64monitor_canvas"
+            width="400"
+            height="280"
+            style="width: 400px"
+        >
         </canvas>
         <script>
-            c64emu.init(document.getElementById("c64monitor_canvas"));
+            c64emu.init(document.getElementById('c64monitor_canvas'));
             c64emu.render();
         </script>
     </body>

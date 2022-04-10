@@ -33,6 +33,8 @@
 
     <body>
 
+        <h1>TODO: this file is not working. please use c64emu.html</h1>
+
         <div class="container">
             <br/>
             <!--<canvas id="c64monitor_canvas" width="400" height="280" style="width:800px;">

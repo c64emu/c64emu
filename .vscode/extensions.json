@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "dbaeumer.vscode-eslint",
-        "ms-vscode.hexeditor"
+        "ms-vscode.hexeditor",
+        "streetsidesoftware.code-spell-checker"
     ]
 }
