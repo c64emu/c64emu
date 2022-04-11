@@ -76,6 +76,7 @@ export class CPU {
             case 0xc4:
             case 0xc5:
             case 0xe4:
+            case 0xe6:
                 v1 = this.readZeroPage(3);
                 break;
             case 0x15:
@@ -84,6 +85,7 @@ export class CPU {
             case 0xb4:
             case 0xb5:
             case 0xd5:
+            case 0xf6:
                 v1 = this.readZeroPageX(4);
                 break;
             case 0xb6:
@@ -98,6 +100,7 @@ export class CPU {
             case 0xcc:
             case 0xcd:
             case 0xec:
+            case 0xee:
                 v1 = this.readAbsolute(4);
                 break;
             case 0x1d:
@@ -106,7 +109,8 @@ export class CPU {
             case 0xbc:
             case 0xbd:
             case 0xdd:
-                v1 = this.readAbsoluteX(4, 1);
+            case 0xfe:
+                v1 = this.readAbsoluteX(4, opcode != 0xfe ? 1 : 0);
                 break;
             case 0x19:
             case 0x39:
@@ -134,6 +138,29 @@ export class CPU {
 
         // operation
         switch (opcode) {
+            // INC --- Increment Memory by One
+            case 0xe6:
+            case 0xf6:
+            case 0xee:
+            case 0xfe:
+                v1 = (v1 + 1) & 0xff;
+                this.sN = v1 >> 7 == 1;
+                this.sZ = v1 == 0;
+                switch (opcode) {
+                    case 0xe6:
+                        this.writeZeroPage(v1, 2);
+                        break;
+                    case 0xf6:
+                        this.writeZeroPageX(v1, 2);
+                        break;
+                    case 0xee:
+                        this.writeAbsolute(v1, 2);
+                        break;
+                    case 0xfe:
+                        this.writeAbsoluteX(v1, 3);
+                        break;
+                }
+                break;
             // ADC --- Add Memory to Accumulator with Carry
             case 0x69:
             case 0x65:
@@ -332,11 +359,25 @@ export class CPU {
                 this.sZ = this.x == 0;
                 this.cycle += 2;
                 break;
+            // DEX --- Decrement Index X by One
+            case 0xca:
+                this.x = (this.x - 1) & 0xff;
+                this.sN = this.x >> 7 == 1;
+                this.sZ = this.x == 0;
+                this.cycle += 2;
+                break;
             // INY --- Increment Index Y by One
             case 0xc8:
                 this.y = (this.y + 1) & 0xff;
-                this.sN = this.x >> 7 == 1;
-                this.sZ = this.x == 0;
+                this.sN = this.y >> 7 == 1;
+                this.sZ = this.y == 0;
+                this.cycle += 2;
+                break;
+            // DEX --- Decrement Index Y by One
+            case 0x88:
+                this.y = (this.y - 1) & 0xff;
+                this.sN = this.y >> 7 == 1;
+                this.sZ = this.y == 0;
                 this.cycle += 2;
                 break;
             // NOP --- No Operation
@@ -373,6 +414,53 @@ export class CPU {
                 this.sV = false;
                 this.cycle += 2;
                 break;
+            // ASL --- Shift Left One Bit
+            case 0x0a:
+            case 0x06:
+            case 0x16:
+            case 0x0e:
+            case 0x1e:
+                switch (opcode) {
+                    case 0x0a:
+                        v1 = this.a;
+                        this.cycle += 2;
+                        break;
+                    case 0x06:
+                        v1 = this.readZeroPage(5);
+                        break;
+                    case 0x16:
+                        v1 = this.readZeroPageX(6);
+                        break;
+                    case 0x0e:
+                        v1 = this.readAbsolute(6);
+                        break;
+                    case 0x1e:
+                        v1 = this.readAbsoluteX(7);
+                        break;
+                }
+                this.sC = (v1 & 0x80) != 0;
+                v1 <<= 1;
+                v1 &= 0xff;
+                this.sZ = v1 == 0;
+                this.sN = v1 >> 7 == 1;
+                switch (opcode) {
+                    case 0x0a:
+                        this.a = v1;
+                        break;
+                    case 0x06:
+                        this.writeZeroPage(v1);
+                        break;
+                    case 0x16:
+                        this.readZeroPageX(v1);
+                        break;
+                    case 0x0e:
+                        this.writeAbsolute(v1);
+                        break;
+                    case 0x1e:
+                        this.writeAbsoluteX(v1);
+                        break;
+                }
+                break;
             // LSR --- Shift One Bit Right
             case 0x4a:
             case 0x46:
@@ -408,13 +496,13 @@ export class CPU {
                         this.writeZeroPage(v1);
                         break;
                     case 0x56:
-                        this.readZeroPageX(v1);
+                        this.writeZeroPageX(v1);
                         break;
                     case 0x4e:
-                        this.readAbsolute(v1);
+                        this.writeAbsolute(v1);
                         break;
                     case 0x5e:
-                        this.readAbsoluteX(v1);
+                        this.writeAbsoluteX(v1);
                         break;
                 }
                 break;
@@ -448,6 +536,11 @@ export class CPU {
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
                 this.cycle += 4;
+                break;
+            // JMP --- Jump to new Location
+            case 0x4c:
+                this.pc =
+                    this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
                 break;
             // BCC --- Branch on Carry Clear
             // BCC --- Branch on Carry Set
