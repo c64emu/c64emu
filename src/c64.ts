@@ -10,6 +10,8 @@ import { VIC2 } from './vic2';
 import { getROM, ROM } from './rom';
 
 export class C64 {
+    private errorLog = '';
+
     private cpu: CPU;
     private vic2: VIC2;
     private sid: SID;
@@ -34,6 +36,10 @@ export class C64 {
         this.cpu = new CPU(this);
         this.vic2 = new VIC2(this);
         this.sid = new SID(this);
+    }
+
+    getErrorLog(): string {
+        return this.errorLog;
     }
 
     write(address: number, value: number) {
@@ -77,7 +83,12 @@ export class C64 {
     }
 
     step(): boolean {
-        this.cpu.step();
+        try {
+            this.cpu.step();
+        } catch (e) {
+            this.errorLog += e + '\n';
+            return false;
+        }
         return true;
     }
 

@@ -14,6 +14,10 @@ export function init(monitorCanvas: HTMLCanvasElement): void {
     canvas = monitorCanvas;
 }
 
+export function getErrorLog(): string {
+    return c64.getErrorLog();
+}
+
 export function setMemory(address: number, values: Uint8Array): boolean {
     for (let k = 0; k < values.length; k++) c64.write(address + k, values[k]);
     return true;
