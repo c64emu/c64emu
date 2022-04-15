@@ -44,6 +44,13 @@ export class CPU {
             a: this.a,
             x: this.x,
             y: this.y,
+            sN: this.sN ? 1 : 0,
+            sV: this.sV ? 1 : 0,
+            sB: this.sB ? 1 : 0,
+            sD: this.sD ? 1 : 0,
+            sI: this.sI ? 1 : 0,
+            sZ: this.sZ ? 1 : 0,
+            sC: this.sC ? 1 : 0,
         };
     }
 
