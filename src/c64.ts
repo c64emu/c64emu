@@ -42,7 +42,7 @@ export class C64 {
         return this.errorLog;
     }
 
-    write(address: number, value: number) {
+    write(address: number, value: number): void {
         //TODO: depends on: const port = this.ram[1];
         if (address >= 0xd000 && address <= 0xd030) {
             this.vic2.write(address - 0xd000, value);
