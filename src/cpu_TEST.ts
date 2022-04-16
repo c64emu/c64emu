@@ -6,6 +6,7 @@
 
 import * as assert from 'assert';
 import * as fs from 'fs';
+import * as process from 'process';
 
 import { CPU } from './cpu';
 import * as opc from './opc';
@@ -37,30 +38,49 @@ class SimpleMemory {
 
 const mem = new SimpleMemory();
 mem.importFromFile(
-    '/Users/andi/Downloads/6502_65C02_functional_tests-master/' +
-        '6502_functional_test.bin.corrected',
+    '../c64emu-testdata/6502_65C02_functional_tests/' +
+        'bin_files/6502_functional_test.bin',
 );
 
 const cpu = new CPU(mem);
 
 cpu.setProgramCounter(0x400);
 
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 50; i++) {
     try {
         const pc = cpu.getProgramCounter();
-        console.log(
-            'PC=0x' +
-                pc.toString(16).padStart(4, '0') +
-                ',' +
-                opc.mnemonics[mem.read(pc)],
-        );
+        let op = opc.mnemonics[mem.read(pc)];
+        op = op.substring(0, 3) + ' (' + op.substring(4) + ')';
+        console.log('PC=' + number2Hex(pc, 4) + ', op=' + op);
         cpu.step();
-        console.log(cpu.getRegisters());
+        console.log('  -> ' + registersToString(cpu.getRegisters()));
+        console.log('');
     } catch (e) {
         console.log(
             'ERROR: PC=0x' +
                 cpu.getRegisters().pc.toString(16).padStart(4, '0'),
         );
         console.log(e);
+        process.exit(-1);
     }
+}
+
+function number2Hex(v: number, digits = 2) {
+    return '$' + v.toString(16).padStart(digits, '0').toUpperCase();
+}
+
+function registersToString(r: { [name: string]: number }) {
+    let s = 'A=' + number2Hex(r['a']);
+    s += ', X=' + number2Hex(r['x']);
+    s += ', Y=' + number2Hex(r['y']);
+    s += ', PC=' + number2Hex(r['pc'], 4);
+    s += ', SP=' + number2Hex(r['sp']);
+    s += ', N=' + r['sN'];
+    s += ', V=' + r['sV'];
+    s += ', B=' + r['sB'];
+    s += ', D=' + r['sD'];
+    s += ', I=' + r['sI'];
+    s += ', Z=' + r['sZ'];
+    s += ', C=' + r['sC'];
+    return s;
 }
