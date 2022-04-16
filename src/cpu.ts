@@ -6,7 +6,7 @@
 
 // MOS 6510
 
-import { C64 } from './c64';
+import { Memory } from './mem';
 
 // const operationCycles = [7];
 
@@ -27,14 +27,18 @@ export class CPU {
     private sZ = false; // status register bit Z (zero, bit 1)
     private sC = false; // status register bit C (carry, bit 0)
 
-    private c64: C64 = null;
+    private mem: Memory = null;
 
-    constructor(c64: C64) {
-        this.c64 = c64;
+    constructor(mem: Memory) {
+        this.mem = mem;
     }
 
     setProgramCounter(address: number): void {
         this.pc = address & 0xffff;
+    }
+
+    getProgramCounter(): number {
+        return this.pc;
     }
 
     getRegisters(): { [id: string]: number } {
@@ -59,7 +63,7 @@ export class CPU {
             v1 = 0,
             v2 = 0,
             cond = false;
-        const opcode = this.c64.read(this.pc++);
+        const opcode = this.mem.read(this.pc++);
 
         // read memory (special cases are handled below)
         switch (opcode) {
@@ -515,7 +519,7 @@ export class CPU {
                 break;
             // PHA --- Push Accumulator on Stack
             case 0x48:
-                this.c64.write(0x100 + this.sp, this.a);
+                this.mem.write(0x100 + this.sp, this.a);
                 this.sp--;
                 this.sp &= 0xff;
                 this.cycle += 3;
@@ -530,7 +534,7 @@ export class CPU {
                 v1 |= (this.sI ? 1 : 0) << 2;
                 v1 |= (this.sZ ? 1 : 0) << 1;
                 v1 |= (this.sC ? 1 : 0) << 0;
-                this.c64.write(0x100 + this.sp, v1);
+                this.mem.write(0x100 + this.sp, v1);
                 this.sp--;
                 this.sp &= 0xff;
                 this.cycle += 3;
@@ -539,7 +543,7 @@ export class CPU {
             case 0x68:
                 this.sp++;
                 this.sp &= 0xff;
-                this.a = this.c64.read(0x100 + this.sp);
+                this.a = this.mem.read(0x100 + this.sp);
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
                 this.cycle += 4;
@@ -547,7 +551,7 @@ export class CPU {
             // JMP --- Jump to new Location
             case 0x4c:
                 this.pc =
-                    this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
+                    this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
                 break;
             // BCC --- Branch on Carry Clear
             // BCC --- Branch on Carry Set
@@ -599,7 +603,7 @@ export class CPU {
                         cond = this.sV;
                         break;
                 }
-                addr = this.c64.read(this.pc++);
+                addr = this.mem.read(this.pc++);
                 if (addr >> 7 == 1) addr = -((~addr + 1) & 0xff);
                 if (cond) {
                     this.cycle += this.pc >> 8 != (this.pc + addr) >> 8 ? 2 : 1;
@@ -609,115 +613,118 @@ export class CPU {
                 break;
 
             default:
-                throw Error('unimplemented opcode ' + opcode);
+                throw Error(
+                    'unimplemented opcode 0x' +
+                        opcode.toString(16).padStart(2, '0'),
+                );
         }
     }
 
     readImmediate(cycles = 0): number {
         this.cycle += cycles;
-        return this.c64.read(this.pc++);
+        return this.mem.read(this.pc++);
     }
 
     readZeroPage(cycles = 0): number {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++);
-        return this.c64.read(addr);
+        const addr = this.mem.read(this.pc++);
+        return this.mem.read(addr);
     }
 
     writeZeroPage(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++);
-        this.c64.write(addr, value);
+        const addr = this.mem.read(this.pc++);
+        this.mem.write(addr, value);
     }
 
     readZeroPageX(cycles = 0): number {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) + this.x;
-        return this.c64.read(addr);
+        const addr = this.mem.read(this.pc++) + this.x;
+        return this.mem.read(addr);
     }
 
     writeZeroPageX(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) + this.x;
-        this.c64.write(addr, value);
+        const addr = this.mem.read(this.pc++) + this.x;
+        this.mem.write(addr, value);
     }
 
     readZeroPageY(cycles = 0): number {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) + this.y;
-        return this.c64.read(addr);
+        const addr = this.mem.read(this.pc++) + this.y;
+        return this.mem.read(addr);
     }
 
     writeZeroPageY(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) + this.y;
-        this.c64.write(addr, value);
+        const addr = this.mem.read(this.pc++) + this.y;
+        this.mem.write(addr, value);
     }
 
     readAbsolute(cycles = 0): number {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
-        return this.c64.read(addr);
+        const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+        return this.mem.read(addr);
     }
 
     writeAbsolute(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
-        this.c64.write(addr, value);
+        const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+        this.mem.write(addr, value);
     }
 
     readAbsoluteX(cycles = 0, pageBoundaryCycles = 0): number {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
+        const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         if (addr >> 8 != (addr + this.x) >> 8) this.cycle += pageBoundaryCycles;
-        return this.c64.read(addr + this.x);
+        return this.mem.read(addr + this.x);
     }
 
     writeAbsoluteX(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
-        this.c64.write(addr + this.x, value);
+        const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+        this.mem.write(addr + this.x, value);
     }
 
     readAbsoluteY(cycles = 0, pageBoundaryCycles = 0): number {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
+        const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         if (addr >> 8 != (addr + this.y) >> 8) this.cycle += pageBoundaryCycles;
-        return this.c64.read(addr + this.y);
+        return this.mem.read(addr + this.y);
     }
 
     writeAbsoluteY(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.c64.read(this.pc++) | (this.c64.read(this.pc++) << 8);
-        this.c64.write(addr + this.y, value);
+        const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+        this.mem.write(addr + this.y, value);
     }
 
     readIndirectX(cycles = 0): number {
         this.cycle += cycles;
-        let addr = this.c64.read(this.pc++) + this.x;
-        addr = this.c64.read(addr) | (this.c64.read(addr + 1) << 8);
-        return this.c64.read(addr);
+        let addr = this.mem.read(this.pc++) + this.x;
+        addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
+        return this.mem.read(addr);
     }
 
     writeIndirectX(value: number, cycles = 0): void {
         this.cycle += cycles;
-        let addr = this.c64.read(this.pc++) + this.x;
-        addr = this.c64.read(addr) | (this.c64.read(addr + 1) << 8);
-        this.c64.write(addr + this.y, value);
+        let addr = this.mem.read(this.pc++) + this.x;
+        addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
+        this.mem.write(addr + this.y, value);
     }
 
     readIndirectY(cycles = 0, pageBoundaryCycles = 0): number {
         this.cycle += cycles;
-        let addr = this.c64.read(this.pc++);
-        addr = this.c64.read(addr) | (this.c64.read(addr + 1) << 8);
+        let addr = this.mem.read(this.pc++);
+        addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
         if (addr >> 8 != (addr + this.y) >> 8) this.cycle += pageBoundaryCycles;
-        return this.c64.read(addr + this.y);
+        return this.mem.read(addr + this.y);
     }
 
     writeIndirectY(value: number, cycles = 0): void {
         this.cycle += cycles;
-        let addr = this.c64.read(this.pc++);
-        addr = this.c64.read(addr) | (this.c64.read(addr + 1) << 8);
-        this.c64.write(addr + this.y, value);
+        let addr = this.mem.read(this.pc++);
+        addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
+        this.mem.write(addr + this.y, value);
     }
 }
