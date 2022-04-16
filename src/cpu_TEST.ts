@@ -46,15 +46,28 @@ const cpu = new CPU(mem);
 
 cpu.setProgramCounter(0x400);
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 1000000; i++) {
     try {
         const pc = cpu.getProgramCounter();
+        if (pc == 0x05a4) {
+            // trap
+            const bp = 1337;
+        }
+        if (pc == 0x3469) {
+            // succeeded
+            const bp = 1337;
+        }
         let op = opc.mnemonics[mem.read(pc)];
         op = op.substring(0, 3) + ' (' + op.substring(4) + ')';
         console.log('PC=' + number2Hex(pc, 4) + ', op=' + op);
         cpu.step();
-        console.log('  -> ' + registersToString(cpu.getRegisters()));
+        const regs = cpu.getRegisters();
+        console.log('  -> ' + registersToString(regs));
         console.log('');
+        if (regs['sD'] == 1) {
+            // TODO: decimal flag not yet supported
+            const bp = 1337;
+        }
     } catch (e) {
         console.log(
             'ERROR: PC=0x' +
