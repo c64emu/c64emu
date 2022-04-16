@@ -5,6 +5,7 @@
     "editor.formatOnSave": true,
     "editor.rulers": [80],
     "cSpell.words": [
+        "andi",
         "Andreas",
         "cloc",
         "esbuild",
