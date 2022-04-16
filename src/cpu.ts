@@ -69,6 +69,7 @@ export class CPU {
         switch (opcode) {
             case 0x09:
             case 0x29:
+            case 0x49:
             case 0x69:
             case 0xa0:
             case 0xa2:
@@ -76,10 +77,12 @@ export class CPU {
             case 0xc0:
             case 0xc9:
             case 0xe0:
+            case 0xe9:
                 v1 = this.readImmediate(2);
                 break;
             case 0x05:
             case 0x25:
+            case 0x45:
             case 0x65:
             case 0xa4:
             case 0xa5:
@@ -87,15 +90,18 @@ export class CPU {
             case 0xc4:
             case 0xc5:
             case 0xe4:
+            case 0xe5:
             case 0xe6:
                 v1 = this.readZeroPage(3);
                 break;
             case 0x15:
             case 0x35:
+            case 0x55:
             case 0x75:
             case 0xb4:
             case 0xb5:
             case 0xd5:
+            case 0xf5:
             case 0xf6:
                 v1 = this.readZeroPageX(4);
                 break;
@@ -104,6 +110,7 @@ export class CPU {
                 break;
             case 0x0d:
             case 0x2d:
+            case 0x4d:
             case 0x6d:
             case 0xac:
             case 0xad:
@@ -111,38 +118,47 @@ export class CPU {
             case 0xcc:
             case 0xcd:
             case 0xec:
+            case 0xed:
             case 0xee:
                 v1 = this.readAbsolute(4);
                 break;
             case 0x1d:
             case 0x3d:
+            case 0x5d:
             case 0x7d:
             case 0xbc:
             case 0xbd:
             case 0xdd:
+            case 0xfd:
             case 0xfe:
                 v1 = this.readAbsoluteX(4, opcode != 0xfe ? 1 : 0);
                 break;
             case 0x19:
             case 0x39:
+            case 0x59:
             case 0x79:
             case 0xb9:
             case 0xbe:
             case 0xd9:
+            case 0xf9:
                 v1 = this.readAbsoluteY(4, 1);
                 break;
             case 0x01:
             case 0x21:
+            case 0x41:
             case 0x61:
             case 0xa1:
             case 0xc1:
+            case 0xe1:
                 v1 = this.readIndirectX(6);
                 break;
             case 0x11:
             case 0x31:
+            case 0x51:
             case 0x71:
             case 0xb1:
             case 0xd1:
+            case 0xf1:
                 v1 = this.readIndirectY(5, 1);
                 break;
         }
@@ -183,7 +199,26 @@ export class CPU {
             case 0x71:
                 v2 = this.a + v1 + (this.sC ? 1 : 0);
                 this.sC = v2 > 0xff;
-                this.sV = !((this.a ^ v1) & 0x80 && (this.a ^ v2) & 0x80);
+                this.sV = !(
+                    ((this.a ^ v1) & 0x80) != 0 && ((this.a ^ v2) & 0x80) != 0
+                );
+                this.a = v2 & 0xff;
+                this.sN = this.a >> 7 == 1;
+                this.sZ = this.a == 0;
+                break;
+            // SBC --- Subtract Memory from Accumulator with Borrow
+            case 0xe9:
+            case 0xe5:
+            case 0xf5:
+            case 0xed:
+            case 0xfd:
+            case 0xf9:
+            case 0xe1:
+            case 0xf1:
+                v2 = this.a - v1 - (this.sC ? 0 : 1);
+                this.sC = v2 < 0;
+                this.sV =
+                    ((this.a ^ v1) & 0x80) != 0 && ((this.a ^ v2) & 0x80) != 0;
                 this.a = v2 & 0xff;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
@@ -211,6 +246,19 @@ export class CPU {
             case 0x01:
             case 0x11:
                 this.a |= v1;
+                this.sN = this.a >> 7 == 1;
+                this.sZ = this.a == 0;
+                break;
+            // EOR --- Exclusive-OR with Accumulator
+            case 0x49:
+            case 0x45:
+            case 0x55:
+            case 0x4d:
+            case 0x5d:
+            case 0x59:
+            case 0x41:
+            case 0x51:
+                this.a ^= v1;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
                 break;
@@ -539,6 +587,19 @@ export class CPU {
                 this.sp &= 0xff;
                 this.cycle += 3;
                 break;
+            // PLP --- Pull Processor Status from Stack
+            case 0x28:
+                this.sp++;
+                this.sp &= 0xff;
+                v1 = this.mem.read(0x100 + this.sp);
+                this.sN = ((v1 >> 7) & 0x01) == 0x01;
+                this.sV = ((v1 >> 6) & 0x01) == 0x01;
+                this.sD = ((v1 >> 3) & 0x01) == 0x01;
+                this.sI = ((v1 >> 2) & 0x01) == 0x01;
+                this.sZ = ((v1 >> 1) & 0x01) == 0x01;
+                this.sC = ((v1 >> 0) & 0x01) == 0x01;
+                this.cycle += 4;
+                break;
             // PLA --- Pull Accumulator from Stack
             case 0x68:
                 this.sp++;
@@ -552,6 +613,29 @@ export class CPU {
             case 0x4c:
                 this.pc =
                     this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+                break;
+            // JSR --- Jump to new Location Saving Return Address
+            case 0x20:
+                this.mem.write(0x100 + this.sp, ((this.pc + 2) >> 8) & 0xff);
+                this.sp--;
+                this.sp &= 0xff;
+                this.mem.write(0x100 + this.sp, (this.pc + 2) & 0xff);
+                this.sp--;
+                this.sp &= 0xff;
+                this.pc =
+                    this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+                this.cycle += 6;
+                break;
+            // RTS --- Return from Subroutine
+            case 0x60:
+                this.sp++;
+                this.sp &= 0xff;
+                this.pc = this.mem.read(0x100 + this.sp);
+                this.sp++;
+                this.sp &= 0xff;
+                this.pc |= this.mem.read(0x100 + this.sp) << 8;
+                this.pc++;
+                this.cycle += 6;
                 break;
             // BCC --- Branch on Carry Clear
             // BCC --- Branch on Carry Set
