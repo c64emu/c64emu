@@ -59,7 +59,7 @@ for (let i = 0; i < 1000000; i++) {
             // succeeded
             const bp = 1337;
         }
-        /*if (pc == 0x3788) {
+        /*if (pc == 0x37c7) {
             const bp = 1337;
         }*/
         let op = opc.mnemonics[mem.read(pc)];

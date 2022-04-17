@@ -654,9 +654,6 @@ export class CPU {
                 break;
             // BRK --- TODO
             case 0x00:
-                // set status flags
-                this.sB = true;
-                this.sI = true;
                 // push program counter on stack
                 this.mem.write(0x100 + this.sp, ((this.pc + 1) >> 8) & 0xff);
                 this.sp--;
@@ -676,6 +673,9 @@ export class CPU {
                 this.mem.write(0x100 + this.sp, v1);
                 this.sp--;
                 this.sp &= 0xff;
+                // set status flags
+                this.sB = true;
+                this.sI = true;
                 // jump to address stored in 0xfffe and 0xffff
                 this.pc = this.mem.read(0xfffe) | (this.mem.read(0xffff) << 8);
                 this.cycle += 7;
