@@ -469,7 +469,12 @@ export class CPU {
                 this.sD = false;
                 this.cycle += 2;
                 break;
-            // CLI --- Clear Interrupt Disable Bit
+            // SEI --- Set Interrupt Disable Flag
+            case 0x78:
+                this.sI = true;
+                this.cycle += 2;
+                break;
+            // CLI --- Clear Interrupt Disable Flag
             case 0x58:
                 this.sI = false;
                 this.cycle += 2;
@@ -671,7 +676,7 @@ export class CPU {
                 this.pc |= this.mem.read(0x100 + this.sp) << 8;
                 this.cycle += 6;
                 break;
-            // BRK --- TODO
+            // BRK --- Force Break
             case 0x00:
                 // push program counter on stack
                 this.mem.write(0x100 + this.sp, ((this.pc + 1) >> 8) & 0xff);
