@@ -9,9 +9,10 @@ Visit https://c64emu.github.io/
 ## Author
 
 (c) 2022 by Andreas Schwenk
-- https://arts-and-sciences.com
-- http://compilier-construction.com
-- mailto:contact@compiler-construction.com
+
+-   https://arts-and-sciences.com
+-   http://compilier-construction.com
+-   mailto:contact@compiler-construction.com
 
 # Installation
 
@@ -43,6 +44,7 @@ Build:
 
 -   https://www.masswerk.at/6502/6502_instruction_set.html
 -   https://en.wikipedia.org/wiki/MOS_Technology_6502
+-   http://www.6502.org/tutorials/6502opcodes.html
 -   http://6502.org/tutorials/compare_instructions.html
 
 ## VIC-II
