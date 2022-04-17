@@ -652,6 +652,25 @@ export class CPU {
                 this.pc++;
                 this.cycle += 6;
                 break;
+            // RTI --- Return from Interrupt
+            case 0x40:
+                this.sp++;
+                this.sp &= 0xff;
+                v1 = this.mem.read(0x100 + this.sp);
+                this.sN = ((v1 >> 7) & 0x01) == 0x01;
+                this.sV = ((v1 >> 6) & 0x01) == 0x01;
+                this.sD = ((v1 >> 3) & 0x01) == 0x01;
+                this.sI = ((v1 >> 2) & 0x01) == 0x01;
+                this.sZ = ((v1 >> 1) & 0x01) == 0x01;
+                this.sC = ((v1 >> 0) & 0x01) == 0x01;
+                this.sp++;
+                this.sp &= 0xff;
+                this.pc = this.mem.read(0x100 + this.sp);
+                this.sp++;
+                this.sp &= 0xff;
+                this.pc |= this.mem.read(0x100 + this.sp) << 8;
+                this.cycle += 6;
+                break;
             // BRK --- TODO
             case 0x00:
                 // push program counter on stack
