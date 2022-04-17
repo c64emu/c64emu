@@ -197,6 +197,9 @@ export class CPU {
             case 0x79:
             case 0x61:
             case 0x71:
+                if (this.sD) {
+                    throw Error('ADC: decimal mode UNIMPLEMENTED!');
+                }
                 v2 = this.a + v1 + (this.sC ? 1 : 0);
                 this.sC = v2 > 0xff;
                 this.sV = !(
@@ -215,6 +218,9 @@ export class CPU {
             case 0xf9:
             case 0xe1:
             case 0xf1:
+                if (this.sD) {
+                    throw Error('ADC: decimal mode UNIMPLEMENTED!');
+                }
                 v2 = this.a - v1 - (this.sC ? 0 : 1);
                 this.sC = v2 < 0;
                 this.sV =
@@ -271,28 +277,28 @@ export class CPU {
             case 0xd9:
             case 0xc1:
             case 0xd1:
-                v2 = this.a - v1;
+                v2 = (this.a - v1) & 0xff;
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
-                this.sC = v2 >= 0;
+                this.sC = this.a >= v1;
                 break;
             // CPX --- Compare Memory with Index X
             case 0xe0:
             case 0xe4:
             case 0xec:
-                v2 = this.x - v1;
+                v2 = (this.x - v1) & 0xff;
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
-                this.sC = v2 >= 0;
+                this.sC = this.x >= v1;
                 break;
             // CPY --- Compare Memory with Index Y
             case 0xc0:
             case 0xc4:
             case 0xcc:
-                v2 = this.y - v1;
+                v2 = (this.y - v1) & 0xff;
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
-                this.sC = v2 >= 0;
+                this.sC = this.y >= v1;
                 break;
             // LDA --- Load Accumulator with Memory
             case 0xa9:
@@ -609,17 +615,26 @@ export class CPU {
                 this.sZ = this.a == 0;
                 this.cycle += 4;
                 break;
-            // JMP --- Jump to new Location
+            // JMP --- Jump to new Location (absolute)
             case 0x4c:
                 this.pc =
                     this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+                this.cycle += 3;
+                break;
+            // JMP --- Jump to new Location (indirect)
+            case 0x6c:
+                v1 = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
+                this.pc =
+                    this.mem.read(v1) |
+                    (this.mem.read((v1 & 0xff00) | ((v1 + 1) & 0xff)) << 8);
+                this.cycle += 5;
                 break;
             // JSR --- Jump to new Location Saving Return Address
             case 0x20:
-                this.mem.write(0x100 + this.sp, ((this.pc + 2) >> 8) & 0xff);
+                this.mem.write(0x100 + this.sp, ((this.pc + 1) >> 8) & 0xff);
                 this.sp--;
                 this.sp &= 0xff;
-                this.mem.write(0x100 + this.sp, (this.pc + 2) & 0xff);
+                this.mem.write(0x100 + this.sp, (this.pc + 1) & 0xff);
                 this.sp--;
                 this.sp &= 0xff;
                 this.pc =
@@ -636,6 +651,34 @@ export class CPU {
                 this.pc |= this.mem.read(0x100 + this.sp) << 8;
                 this.pc++;
                 this.cycle += 6;
+                break;
+            // BRK --- TODO
+            case 0x00:
+                // set status flags
+                this.sB = true;
+                this.sI = true;
+                // push program counter on stack
+                this.mem.write(0x100 + this.sp, ((this.pc + 1) >> 8) & 0xff);
+                this.sp--;
+                this.sp &= 0xff;
+                this.mem.write(0x100 + this.sp, (this.pc + 1) & 0xff);
+                this.sp--;
+                this.sp &= 0xff;
+                // push status register on stack
+                v1 = (this.sN ? 1 : 0) << 7;
+                v1 |= (this.sV ? 1 : 0) << 6;
+                v1 |= 1 << 5;
+                v1 |= 1 << 4;
+                v1 |= (this.sD ? 1 : 0) << 3;
+                v1 |= (this.sI ? 1 : 0) << 2;
+                v1 |= (this.sZ ? 1 : 0) << 1;
+                v1 |= (this.sC ? 1 : 0) << 0;
+                this.mem.write(0x100 + this.sp, v1);
+                this.sp--;
+                this.sp &= 0xff;
+                // jump to address stored in 0xfffe and 0xffff
+                this.pc = this.mem.read(0xfffe) | (this.mem.read(0xffff) << 8);
+                this.cycle += 7;
                 break;
             // BCC --- Branch on Carry Clear
             // BCC --- Branch on Carry Set
