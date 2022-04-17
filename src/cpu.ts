@@ -399,8 +399,6 @@ export class CPU {
             // TXS --- Transfer Index X to Stack Pointer
             case 0x9a:
                 this.sp = this.x;
-                this.sN = this.sp >> 7 == 1;
-                this.sZ = this.sp == 0;
                 this.cycle += 2;
                 break;
             // TYA --- Transfer Index Y to Accumulator
