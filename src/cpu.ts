@@ -90,6 +90,7 @@ export class CPU {
             case 0xa6:
             case 0xc4:
             case 0xc5:
+            case 0xc6:
             case 0xe4:
             case 0xe5:
             case 0xe6:
@@ -102,6 +103,7 @@ export class CPU {
             case 0xb4:
             case 0xb5:
             case 0xd5:
+            case 0xd6:
             case 0xf5:
             case 0xf6:
                 v1 = this.readZeroPageX(4);
@@ -119,6 +121,7 @@ export class CPU {
             case 0xae:
             case 0xcc:
             case 0xcd:
+            case 0xce:
             case 0xec:
             case 0xed:
             case 0xee:
@@ -131,9 +134,13 @@ export class CPU {
             case 0xbc:
             case 0xbd:
             case 0xdd:
+            case 0xde:
             case 0xfd:
             case 0xfe:
-                v1 = this.readAbsoluteX(4, opcode != 0xfe ? 1 : 0);
+                v1 = this.readAbsoluteX(
+                    4,
+                    opcode != 0xfe && opcode != 0xde ? 1 : 0,
+                );
                 break;
             case 0x19:
             case 0x39:
@@ -177,15 +184,46 @@ export class CPU {
                 this.sZ = v1 == 0;
                 switch (opcode) {
                     case 0xe6:
+                        this.pc--;
                         this.writeZeroPage(v1, 2);
                         break;
                     case 0xf6:
+                        this.pc--;
                         this.writeZeroPageX(v1, 2);
                         break;
                     case 0xee:
+                        this.pc -= 2;
                         this.writeAbsolute(v1, 2);
                         break;
                     case 0xfe:
+                        this.pc -= 2;
+                        this.writeAbsoluteX(v1, 3);
+                        break;
+                }
+                break;
+            // DEC --- Decrement Memory by One
+            case 0xc6:
+            case 0xd6:
+            case 0xce:
+            case 0xde:
+                v1 = (v1 - 1) & 0xff;
+                this.sN = v1 >> 7 == 1;
+                this.sZ = v1 == 0;
+                switch (opcode) {
+                    case 0xc6:
+                        this.pc--;
+                        this.writeZeroPage(v1, 2);
+                        break;
+                    case 0xd6:
+                        this.pc--;
+                        this.writeZeroPageX(v1, 2);
+                        break;
+                    case 0xce:
+                        this.pc -= 2;
+                        this.writeAbsolute(v1, 2);
+                        break;
+                    case 0xde:
+                        this.pc -= 2;
                         this.writeAbsoluteX(v1, 3);
                         break;
                 }
@@ -525,15 +563,19 @@ export class CPU {
                         this.a = v1;
                         break;
                     case 0x06:
+                        this.pc--;
                         this.writeZeroPage(v1);
                         break;
                     case 0x16:
-                        this.readZeroPageX(v1);
+                        this.pc--;
+                        this.writeZeroPageX(v1);
                         break;
                     case 0x0e:
+                        this.pc -= 2;
                         this.writeAbsolute(v1);
                         break;
                     case 0x1e:
+                        this.pc -= 2;
                         this.writeAbsoluteX(v1);
                         break;
                 }
@@ -571,15 +613,19 @@ export class CPU {
                         this.a = v1;
                         break;
                     case 0x46:
+                        this.pc--;
                         this.writeZeroPage(v1);
                         break;
                     case 0x56:
+                        this.pc--;
                         this.writeZeroPageX(v1);
                         break;
                     case 0x4e:
+                        this.pc -= 2;
                         this.writeAbsolute(v1);
                         break;
                     case 0x5e:
+                        this.pc -= 2;
                         this.writeAbsoluteX(v1);
                         break;
                 }
@@ -619,15 +665,19 @@ export class CPU {
                         this.a = v1;
                         break;
                     case 0x26:
+                        this.pc--;
                         this.writeZeroPage(v1);
                         break;
                     case 0x36:
+                        this.pc--;
                         this.writeZeroPageX(v1);
                         break;
                     case 0x2e:
+                        this.pc -= 2;
                         this.writeAbsolute(v1);
                         break;
                     case 0x3e:
+                        this.pc -= 2;
                         this.writeAbsoluteX(v1);
                         break;
                 }
@@ -668,15 +718,19 @@ export class CPU {
                         this.a = v1;
                         break;
                     case 0x66:
+                        this.pc--;
                         this.writeZeroPage(v1);
                         break;
                     case 0x76:
+                        this.pc--;
                         this.writeZeroPageX(v1);
                         break;
                     case 0x6e:
+                        this.pc -= 2;
                         this.writeAbsolute(v1);
                         break;
                     case 0x7e:
+                        this.pc -= 2;
                         this.writeAbsoluteX(v1);
                         break;
                 }
