@@ -81,6 +81,7 @@ export class CPU {
                 v1 = this.readImmediate(2);
                 break;
             case 0x05:
+            case 0x24:
             case 0x25:
             case 0x45:
             case 0x65:
@@ -109,6 +110,7 @@ export class CPU {
                 v1 = this.readZeroPageY(4);
                 break;
             case 0x0d:
+            case 0x2c:
             case 0x2d:
             case 0x4d:
             case 0x6d:
@@ -299,6 +301,13 @@ export class CPU {
                 this.sN = v2 >> 7 == 1;
                 this.sZ = v2 == 0;
                 this.sC = this.y >= v1;
+                break;
+            // BIT --- Test Bits in Memory with Accumulator
+            case 0x24:
+            case 0x2c:
+                this.sZ = (this.a & v1) == 0;
+                this.sN = ((v1 >> 7) & 0x01) == 1;
+                this.sV = ((v1 >> 6) & 0x01) == 1;
                 break;
             // LDA --- Load Accumulator with Memory
             case 0xa9:
@@ -788,25 +797,25 @@ export class CPU {
 
     readZeroPageX(cycles = 0): number {
         this.cycle += cycles;
-        const addr = this.mem.read(this.pc++) + this.x;
+        const addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         return this.mem.read(addr);
     }
 
     writeZeroPageX(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.mem.read(this.pc++) + this.x;
+        const addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         this.mem.write(addr, value);
     }
 
     readZeroPageY(cycles = 0): number {
         this.cycle += cycles;
-        const addr = this.mem.read(this.pc++) + this.y;
+        const addr = (this.mem.read(this.pc++) + this.y) & 0xff;
         return this.mem.read(addr);
     }
 
     writeZeroPageY(value: number, cycles = 0): void {
         this.cycle += cycles;
-        const addr = this.mem.read(this.pc++) + this.y;
+        const addr = (this.mem.read(this.pc++) + this.y) & 0xff;
         this.mem.write(addr, value);
     }
 
@@ -850,16 +859,16 @@ export class CPU {
 
     readIndirectX(cycles = 0): number {
         this.cycle += cycles;
-        let addr = this.mem.read(this.pc++) + this.x;
+        let addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
         return this.mem.read(addr);
     }
 
     writeIndirectX(value: number, cycles = 0): void {
         this.cycle += cycles;
-        let addr = this.mem.read(this.pc++) + this.x;
+        let addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
-        this.mem.write(addr + this.y, value);
+        this.mem.write(addr, value);
     }
 
     readIndirectY(cycles = 0, pageBoundaryCycles = 0): number {
@@ -874,6 +883,6 @@ export class CPU {
         this.cycle += cycles;
         let addr = this.mem.read(this.pc++);
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
-        this.mem.write(addr + this.y, value);
+        this.mem.write(addr + this.y, value); // TODO: without carry??
     }
 }
