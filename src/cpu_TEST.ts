@@ -59,9 +59,9 @@ for (let i = 0; i < 1000000; i++) {
             // succeeded
             const bp = 1337;
         }
-        /*if (pc == 0x2416) {
+        if (pc == 0x35c7) {
             const bp = 1337;
-        }*/
+        }
         let op = opc.mnemonics[mem.read(pc)];
         op = op.substring(0, 3) + ' (' + op.substring(4) + ')';
         console.log('PC=' + number2Hex(pc, 4) + ', op=' + op);
