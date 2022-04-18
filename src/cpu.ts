@@ -565,6 +565,7 @@ export class CPU {
                 this.sC = (v1 & 0x01) == 1;
                 v1 >>= 1;
                 this.sZ = v1 == 0;
+                this.sN = false;
                 switch (opcode) {
                     case 0x4a:
                         this.a = v1;
@@ -579,6 +580,103 @@ export class CPU {
                         this.writeAbsolute(v1);
                         break;
                     case 0x5e:
+                        this.writeAbsoluteX(v1);
+                        break;
+                }
+                break;
+            // ROL --- Rotate One Bit Left
+            case 0x2a:
+            case 0x26:
+            case 0x36:
+            case 0x2e:
+            case 0x3e:
+                switch (opcode) {
+                    case 0x2a:
+                        v1 = this.a;
+                        this.cycle += 2;
+                        break;
+                    case 0x26:
+                        v1 = this.readZeroPage(5);
+                        break;
+                    case 0x36:
+                        v1 = this.readZeroPageX(6);
+                        break;
+                    case 0x2e:
+                        v1 = this.readAbsolute(6);
+                        break;
+                    case 0x3e:
+                        v1 = this.readAbsoluteX(7);
+                        break;
+                }
+                v1 <<= 1;
+                v1 |= this.sC ? 1 : 0;
+                this.sC = v1 >> 8 == 1;
+                v1 &= 0xff;
+                this.sZ = v1 == 0;
+                this.sN = v1 >> 7 == 1;
+                switch (opcode) {
+                    case 0x2a:
+                        this.a = v1;
+                        break;
+                    case 0x26:
+                        this.writeZeroPage(v1);
+                        break;
+                    case 0x36:
+                        this.writeZeroPageX(v1);
+                        break;
+                    case 0x2e:
+                        this.writeAbsolute(v1);
+                        break;
+                    case 0x3e:
+                        this.writeAbsoluteX(v1);
+                        break;
+                }
+                break;
+            // ROR --- Rotate One Bit Right
+            case 0x6a:
+            case 0x66:
+            case 0x76:
+            case 0x6e:
+            case 0x7e:
+                switch (opcode) {
+                    case 0x6a:
+                        v1 = this.a;
+                        this.cycle += 2;
+                        break;
+                    case 0x66:
+                        v1 = this.readZeroPage(5);
+                        break;
+                    case 0x76:
+                        v1 = this.readZeroPageX(6);
+                        break;
+                    case 0x6e:
+                        v1 = this.readAbsolute(6);
+                        break;
+                    case 0x7e:
+                        v1 = this.readAbsoluteX(7);
+                        break;
+                }
+                v2 = v1 & 0x01; // new carry
+                v1 >>= 1;
+                v1 |= this.sC ? 1 << 7 : 0;
+                this.sC = v2 == 1;
+                v1 &= 0xff;
+                this.sZ = v1 == 0;
+                this.sN = v1 >> 7 == 1;
+                switch (opcode) {
+                    case 0x6a:
+                        this.a = v1;
+                        break;
+                    case 0x66:
+                        this.writeZeroPage(v1);
+                        break;
+                    case 0x76:
+                        this.writeZeroPageX(v1);
+                        break;
+                    case 0x6e:
+                        this.writeAbsolute(v1);
+                        break;
+                    case 0x7e:
                         this.writeAbsoluteX(v1);
                         break;
                 }
