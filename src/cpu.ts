@@ -62,7 +62,8 @@ export class CPU {
         let addr = 0,
             v1 = 0,
             v2 = 0,
-            cond = false;
+            cond = false,
+            carryIn = false;
         const opcode = this.mem.read(this.pc++);
 
         // read memory (special cases are handled below)
@@ -237,14 +238,26 @@ export class CPU {
             case 0x79:
             case 0x61:
             case 0x71:
-                if (this.sD) {
-                    throw Error('ADC: decimal mode UNIMPLEMENTED!');
-                }
                 v2 = this.a + v1 + (this.sC ? 1 : 0);
-                this.sC = v2 > 0xff;
-                this.sV = !(
-                    ((this.a ^ v1) & 0x80) != 0 && ((this.a ^ v2) & 0x80) != 0
-                );
+                this.sV =
+                    ((this.a ^ v1) & 0x80) == 0 && ((this.a ^ v2) & 0x80) != 0;
+                if (this.sD) {
+                    // decimal mode
+                    let lowNibble =
+                        (this.a & 0xf) + (v1 & 0xf) + (this.sC ? 1 : 0);
+                    const tmpCarry = lowNibble > 9;
+                    if (tmpCarry) lowNibble -= 10;
+                    let highNibble =
+                        ((this.a >> 4) & 0xf) +
+                        ((v1 >> 4) & 0xf) +
+                        (tmpCarry ? 1 : 0);
+                    this.sC = highNibble > 9;
+                    if (this.sC) highNibble -= 10;
+                    v2 = (highNibble << 4) | lowNibble;
+                } else {
+                    // binary mode
+                    this.sC = v2 > 0xff;
+                }
                 this.a = v2 & 0xff;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;
@@ -258,13 +271,18 @@ export class CPU {
             case 0xf9:
             case 0xe1:
             case 0xf1:
-                if (this.sD) {
-                    throw Error('ADC: decimal mode UNIMPLEMENTED!');
-                }
                 v2 = this.a - v1 - (this.sC ? 0 : 1);
-                this.sC = v2 < 0;
                 this.sV =
                     ((this.a ^ v1) & 0x80) != 0 && ((this.a ^ v2) & 0x80) != 0;
+                carryIn = this.sC;
+                this.sC = (v2 & 0xffff) < 0x100;
+                if (this.sD) {
+                    const d1 = (this.a >> 4) * 10 + (this.a & 0xf);
+                    const d2 = (v1 >> 4) * 10 + (v1 & 0xf);
+                    let d = d1 - d2 - (carryIn ? 0 : 1);
+                    if (d < 0) d += 100;
+                    v2 = (Math.floor(d / 10) << 4) | d % 10;
+                }
                 this.a = v2 & 0xff;
                 this.sN = this.a >> 7 == 1;
                 this.sZ = this.a == 0;

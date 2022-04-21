@@ -52,23 +52,57 @@ cpu.step();
 const regs = cpu.getRegisters();
 console.log('  -> ' + registersToString(regs));*/
 
-for (let i = 0; i < 1000000; i++) {
+const visited = new Set<number>();
+let last_pc = -1;
+
+for (let i = 0; ; i++) {
+    if (i % 1000000 == 0) {
+        console.log(i);
+    }
     try {
         const pc = cpu.getProgramCounter();
-        if (pc == 0x3469) {
-            // succeeded
-            const bp = 1337;
+        if (pc == 0x3469 || pc == 0x346c) {
+            console.log('executed ' + i + ' instructions');
+            console.log('PC=0x' + pc.toString(16).padStart(4, '0'));
+            console.log('SUCCEEDED');
+
+            let lst = fs.readFileSync(
+                '../c64emu-testdata/6502_65C02_functional_tests/' +
+                    'bin_files/6502_functional_test.lst',
+                'ascii',
+            );
+            for (const v of visited) {
+                const addr = v.toString(16).padStart(4, '0');
+                lst = lst.replace('\n' + addr + ' : ', '\n' + addr + '*: ');
+            }
+            fs.writeFileSync(
+                '../c64emu-testdata/6502_65C02_functional_tests/' +
+                    'bin_files/6502_functional_test_VISITED.lst',
+                lst,
+            );
+            process.exit(0);
+        } else if (pc == last_pc) {
+            console.log('executed ' + i + ' instructions');
+            console.log('PC=0x' + pc.toString(16).padStart(4, '0'));
+            console.log('ERROR');
+            process.exit(-1);
+        } else if (pc == 0x3484 || i == 26764229) {
+            const breakpoint = true;
         }
-        if (pc == 0x35c7) {
-            const bp = 1337;
-        }
+        visited.add(pc);
         let op = opc.mnemonics[mem.read(pc)];
         op = op.substring(0, 3) + ' (' + op.substring(4) + ')';
-        console.log('PC=' + number2Hex(pc, 4) + ', op=' + op);
+        const print = false; //pc >= 0x346f && pc <= 0x3492;
+        if (print) {
+            console.log('i=' + i + ', PC=' + number2Hex(pc, 4) + ', op=' + op);
+        }
         cpu.step();
         const regs = cpu.getRegisters();
-        console.log('  -> ' + registersToString(regs));
-        console.log('');
+        if (print) {
+            console.log('  -> ' + registersToString(regs));
+            console.log('');
+        }
+        last_pc = pc;
     } catch (e) {
         console.log(
             'ERROR: PC=0x' +
