@@ -35,7 +35,7 @@ Build:
 
 # Screenshot
 
-![Alt text](screenshots/canvas.png?raw=true 'Title')
+![Alt text](img/c64emu-2022-04-04.png?raw=true 'Title')
 
 # Literature
 
