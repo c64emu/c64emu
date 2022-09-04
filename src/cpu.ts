@@ -66,6 +66,8 @@ export class CPU {
             carryIn = false;
         const opcode = this.mem.read(this.pc++);
 
+        //console.log('OPCODE = 0x' + opcode.toString(16));
+
         // read memory (special cases are handled below)
         switch (opcode) {
             case 0x09:

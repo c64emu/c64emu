@@ -1,5 +1,5 @@
 dist/c64emu.min.js
-tmp/
+lib/
 
 # Logs
 logs

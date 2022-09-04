@@ -2,6 +2,8 @@
 
 C64 emulator for the browser; written in TypeScript.
 
+NOTE: THIS PROJECT IS WORK IN PROGRESS!
+
 ## Website
 
 Visit https://c64emu.github.io/
@@ -11,6 +13,7 @@ Visit https://c64emu.github.io/
 (c) 2022 by Andreas Schwenk
 
 -   https://arts-and-sciences.com
+-   https://multila.org
 -   http://compilier-construction.com
 -   mailto:contact@compiler-construction.com
 

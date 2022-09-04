@@ -1,10 +1,10 @@
 {
-    "name": "c64emu",
-    "version": "0.0.2",
-    "description": "C64 emulator for the web",
-    "main": "src/index.js",
+    "name": "@c64emu/c64emu",
+    "version": "0.0.3",
+    "description": "C64 emulator for the Web",
+    "main": "lib/index.js",
     "scripts": {
-        "build": "tsc -noEmit && node ./build.js",
+        "build": "tsc && node ./build.js",
         "webserver": "php -S localhost:8000"
     },
     "repository": {

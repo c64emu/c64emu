@@ -58,9 +58,10 @@ export class C64 {
         //    return this.romCharacters[address - 0xd000];
         if (address >= 0xd000 && address <= 0xd030)
             return this.vic2.read(address - 0xd00);
-        else if (address >= 0xa000 && address <= 0xbfff)
+        else if (address >= 0xa000 && address <= 0xbfff) {
+            console.log('!!BASIC!!' + address);
             return this.romBasic[address - 0xa000];
-        else if (address >= 0xe000 && address <= 0xffff)
+        } else if (address >= 0xe000 && address <= 0xffff)
             return this.romKernal[address - 0xe000];
         else {
             /*if (this.ramWritten[address] == 0)
@@ -97,6 +98,19 @@ export class C64 {
     }
 
     render(): void {
+        this.vic2.render(63 * 312);
+
+        //this.cpu.step();
+        this.cpu.setProgramCounter(0xfce2);
+        for (let i = 0; i < 100000000; i++) {
+            if (this.cpu.getProgramCounter() == 0xe394) {
+                console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+            }
+            this.step();
+            //console.log(this.cpu.getRegisters());
+        }
+        console.log(this.cpu.getProgramCounter());
+
         /*// temp test:
         for (let i = 0; i < 1000; i++) this.write(0x0400 + i, 96);
         // "C64"
