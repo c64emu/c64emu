@@ -1,6 +1,6 @@
 /******************************************************************************
  * C64 Emulator -- for the web                                                *
- * (c) 2022 by Andreas Schwenk, License: GPLv3                                *
+ * (c) 2022-2023 by Andreas Schwenk, License: GPLv3                           *
  * mailto:contact@compiler-construction.com                                   *
  *****************************************************************************/
 

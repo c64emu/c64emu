@@ -11,37 +11,53 @@ import { Memory } from './mem';
 // const operationCycles = [7];
 
 export class CPU {
-    private cycle = 0; // current cycle
-
-    private pc = 0; // program counter (2 bytes)
-    private sp = 0; // stack pointer (1 byte)
-    private a = 0; // accumulator (1 byte)
-    private x = 0; // x register (1 byte)
-    private y = 0; // y register (1 byte)
-
-    private sN = false; // status register bit N (negative, bit 7)
-    private sV = false; // status register bit V (overflow, bit 6)
-    private sB = false; // status register bit B (break, bit 4)
-    private sD = false; // status register bit D (decimal, bit 3)
-    private sI = false; // status register bit I (interrupt, bit 2)
-    private sZ = false; // status register bit Z (zero, bit 1)
-    private sC = false; // status register bit C (carry, bit 0)
-
-    private mem: Memory = null;
-
-    constructor(mem: Memory) {
-        this.mem = mem;
+    /**
+     * Creates the MOS 6510 CPU.
+     * @param {Memory} mem - The main memory.
+     * @private @property {number} cycle - The current cycle.
+     * @private @property {number} pc - The program counter (2 bytes).
+     * @private @property {number} sp - The stack pointer (1 byte).
+     * @private @property {number} a - The accumulator (1 byte).
+     * @private @property {number} x - The x register (1 byte).
+     * @private @property {number} y - The y register (1 byte).
+     * @private @property {boolean} sN - The status reg bit N (negative, bit 7)
+     * @private @property {boolean} sV - The status reg bit V (overflow, bit 6)
+     * @private @property {boolean} sB - The status reg bit B (break, bit 4)
+     * @private @property {boolean} sD - The status reg bit D (decimal, bit 3)
+     * @private @property {boolean} sI - The status reg bit I (interrupt, bit 2)
+     * @private @property {boolean} sZ - The status reg bit Z (zero, bit 1)
+     * @private @property {boolean} sC - The status reg bit C (carry, bit 0)
+     */
+    constructor(mem) {
+        this.cycle = 0;
+        this.pc = this.sp = this.a = this.x = this.y = 0;
+        this.sN = this.sV = this.sB = this.sD = false;
+        this.sI = this.sZ = this.sC = false;
+        this.mem = null;
     }
 
-    setProgramCounter(address: number): void {
+    /**
+     *
+     * @param {number} address
+     * @returns {void}
+     */
+    setProgramCounter(address) {
         this.pc = address & 0xffff;
     }
 
-    getProgramCounter(): number {
+    /**
+     *
+     * @returns {number}
+     */
+    getProgramCounter() {
         return this.pc;
     }
 
-    getRegisters(): { [id: string]: number } {
+    /**
+     *
+     * @returns { Object.<string,number> }
+     */
+    getRegisters() {
         return {
             pc: this.pc,
             sp: this.sp,
@@ -58,7 +74,10 @@ export class CPU {
         };
     }
 
-    step(): void {
+    /**
+     * @returns {void}
+     */
+    step() {
         let addr = 0,
             v1 = 0,
             v2 = 0,
@@ -950,100 +969,197 @@ export class CPU {
         }
     }
 
-    readImmediate(cycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @returns {number}
+     */
+    readImmediate(cycles = 0) {
         this.cycle += cycles;
         return this.mem.read(this.pc++);
     }
 
-    readZeroPage(cycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @returns {number}
+     */
+    readZeroPage(cycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++);
         return this.mem.read(addr);
     }
 
-    writeZeroPage(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+    writeZeroPage(value, cycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++);
         this.mem.write(addr, value);
     }
 
-    readZeroPageX(cycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @returns {number}
+     */
+    readZeroPageX(cycles = 0) {
         this.cycle += cycles;
         const addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         return this.mem.read(addr);
     }
 
-    writeZeroPageX(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+
+    writeZeroPageX(value, cycles = 0) {
         this.cycle += cycles;
         const addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         this.mem.write(addr, value);
     }
 
-    readZeroPageY(cycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @returns {number}
+     */
+    readZeroPageY(cycles = 0) {
         this.cycle += cycles;
         const addr = (this.mem.read(this.pc++) + this.y) & 0xff;
         return this.mem.read(addr);
     }
 
-    writeZeroPageY(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+
+    writeZeroPageY(value, cycles = 0) {
         this.cycle += cycles;
         const addr = (this.mem.read(this.pc++) + this.y) & 0xff;
         this.mem.write(addr, value);
     }
 
-    readAbsolute(cycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @returns {number}
+     */
+    readAbsolute(cycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         return this.mem.read(addr);
     }
 
-    writeAbsolute(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+
+    writeAbsolute(value, cycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         this.mem.write(addr, value);
     }
 
-    readAbsoluteX(cycles = 0, pageBoundaryCycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @param {number} pageBoundaryCycles
+     * @returns {number}
+     */
+    readAbsoluteX(cycles = 0, pageBoundaryCycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         if (addr >> 8 != (addr + this.x) >> 8) this.cycle += pageBoundaryCycles;
         return this.mem.read(addr + this.x);
     }
 
-    writeAbsoluteX(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+
+    writeAbsoluteX(value, cycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         this.mem.write(addr + this.x, value);
     }
 
-    readAbsoluteY(cycles = 0, pageBoundaryCycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @param {number} pageBoundaryCycles
+     * @returns {number}
+     */
+    readAbsoluteY(cycles = 0, pageBoundaryCycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         if (addr >> 8 != (addr + this.y) >> 8) this.cycle += pageBoundaryCycles;
         return this.mem.read(addr + this.y);
     }
 
-    writeAbsoluteY(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+
+    writeAbsoluteY(value, cycles = 0) {
         this.cycle += cycles;
         const addr = this.mem.read(this.pc++) | (this.mem.read(this.pc++) << 8);
         this.mem.write(addr + this.y, value);
     }
 
-    readIndirectX(cycles = 0): number {
+    /**
+     *
+     * @param {number} cycles
+     * @returns {number}
+     */
+    readIndirectX(cycles = 0) {
         this.cycle += cycles;
         let addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
         return this.mem.read(addr);
     }
 
-    writeIndirectX(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+
+    writeIndirectX(value, cycles = 0) {
         this.cycle += cycles;
         let addr = (this.mem.read(this.pc++) + this.x) & 0xff;
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
         this.mem.write(addr, value);
     }
 
-    readIndirectY(cycles = 0, pageBoundaryCycles = 0): number {
+    /**
+     *
+     * @param {number} value
+     * @param {number} pageBoundaryCycles
+     * @returns {number}
+     */
+
+    readIndirectY(cycles = 0, pageBoundaryCycles = 0) {
         this.cycle += cycles;
         let addr = this.mem.read(this.pc++);
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
@@ -1051,7 +1167,13 @@ export class CPU {
         return this.mem.read(addr + this.y);
     }
 
-    writeIndirectY(value: number, cycles = 0): void {
+    /**
+     *
+     * @param {number} value
+     * @param {number} cycles
+     * @returns {void}
+     */
+    writeIndirectY(value, cycles = 0) {
         this.cycle += cycles;
         let addr = this.mem.read(this.pc++);
         addr = this.mem.read(addr) | (this.mem.read(addr + 1) << 8);
