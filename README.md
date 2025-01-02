@@ -1,5 +1,10 @@
 # c64emu
 
+=== THIS PROJECT IS NOT LONGER MAINTAINED ===
+I am currently developing a new implementation using vanilla JavaScript. Once it is complete, I plan to archive this GitHub account.
+===
+
+
 C64 emulator for the browser; written in TypeScript.
 
 NOTE: THIS PROJECT IS WORK IN PROGRESS!
